@@ -94,9 +94,9 @@ public class Permissions extends CordovaPlugin {
             addProperty(returnObj, KEY_RESULT_PERMISSION, true);
             callbackContext.success(returnObj);
         } else {
-            String permission0;
+            JSONArray permission0;
             try {
-                permission0 = permission.getString(0);
+                permission0 = permission.getJSONArray(0);
             } catch (JSONException ex) {
                 JSONObject returnObj = new JSONObject();
                 addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
@@ -109,7 +109,15 @@ public class Permissions extends CordovaPlugin {
                 Context context = this.cordova.getActivity().getApplicationContext();
                 addProperty(returnObj, KEY_RESULT_PERMISSION, Settings.canDrawOverlays(context));
             } else {
-                addProperty(returnObj, KEY_RESULT_PERMISSION, cordova.hasPermission(permission0));
+                try {
+                    addProperty(returnObj, KEY_RESULT_PERMISSION, this.hasAllPermissions(permission0));
+                } catch (JSONException e) {
+                    JSONObject jsb = new JSONObject();
+                    addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
+                    addProperty(returnObj, KEY_MESSAGE, "Check permission has been failed." + e);
+                    callbackContext.error(returnObj);
+                    e.printStackTrace();
+                }
             }
             callbackContext.success(returnObj);
         }
@@ -172,7 +180,7 @@ public class Permissions extends CordovaPlugin {
     private boolean hasAllPermissions(String[] permissions) throws JSONException {
 
         for (String permission : permissions) {
-            if(!cordova.hasPermission(permission)) {
+            if (!cordova.hasPermission(permission)) {
                 return false;
             }
         }
